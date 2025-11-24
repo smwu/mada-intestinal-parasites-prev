@@ -2,7 +2,7 @@
 # Intestinal Parasites Age-Sex Prevalence Estimates
 # Author: SM Wu
 # Date created: 2025/01/28
-# Date updated: 2025/08/27
+# Date updated: 2025/11/24
 # Purpose: Create exploratory figures and parasite prevalence estimates 
 # STEPS: 
 # (1) Read in data
@@ -45,8 +45,8 @@ library(officer)          # create Word docs
 library(ggpubr)
 
 ### Specify directories (change to your local paths)
-# setwd("/Users/Stephanie/Documents/GitHub/Intestinal_Parasites")
-wd <- "/Users/Stephanie/Documents/GitHub/Intestinal_Parasites/"  # Working directory
+wd <- "~/Documents/GitHub/mada-intestinal-parasites-prev/"  # Working directory
+setwd(wd)
 data_dir <- "Cleaned_Data/"  # Directory with data 
 code_dir <- "Code/"  # Directory with code
 res_dir <- "Model_Outputs/"  # Directory to store results

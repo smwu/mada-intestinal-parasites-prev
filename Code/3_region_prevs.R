@@ -2,7 +2,7 @@
 # Intestinal Parasites Region-Specific Prevalence Estimates
 # Author: SM Wu
 # Date created: 2025/02/05
-# Date updated: 2025/07/07
+# Date updated: 2025/11/24
 # Purpose: Create region-specific parasite prevalence estimates and plots
 # STEPS: 
 # (1) Read in data
@@ -45,8 +45,8 @@ library(writexl)
 
 
 ### Specify directories (change to your local paths)
-# setwd("/Users/Stephanie/Documents/GitHub/Intestinal_Parasites")
-wd <- "/Users/Stephanie/Documents/GitHub/Intestinal_Parasites/"  # Working directory
+wd <- "~/Documents/GitHub/mada-intestinal-parasites-prev/"  # Working directory
+setwd(wd)
 data_dir <- "Cleaned_Data/"  # Directory with data 
 code_dir <- "Code/"  # Directory with code
 res_dir <- "Model_Outputs/"  # Directory to store results

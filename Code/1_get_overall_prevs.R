@@ -2,7 +2,7 @@
 # Intestinal Parasites EDA and Prevalence Estimates
 # Author: SM Wu
 # Date created: 2025/01/28
-# Date updated: 2025/11/17
+# Date updated: 2025/11/24
 # Purpose: Create exploratory figures and parasite prevalence estimates 
 # STEPS: 
 # (1) Read in data 
@@ -52,27 +52,32 @@ num_cores <- parallel::detectCores()
 options(mc.cores = num_cores)
 
 ### Specify directories (change to your local paths)
-# setwd("/Users/Stephanie/Documents/GitHub/Intestinal_Parasites")
-wd <- "/Users/Stephanie/Documents/GitHub/Intestinal_Parasites/"  # Working directory
+wd <- "~/Documents/GitHub/mada-intestinal-parasites-prev/"  # Working directory
+setwd(wd)
 data_dir <- "Cleaned_Data/"  # Directory with data 
 code_dir <- "Code/"  # Directory with code
 res_dir <- "Model_Outputs/"  # Directory to store results
 
 # Read in cleaned averaged parasite data in wide format
-fec_all_wide_clean <- read.csv(
-  paste0(wd, data_dir, "mah_dar_crs_fec_cleaned_avg_wide_drop_miss.csv"))
-fec_all_wide_clean <- fec_all_wide_clean %>%
+fec_all_clean_miss <- read.csv(
+  paste0(wd, data_dir, "mah_dar_crs_fec_cleaned_avg_wide_public.csv"))
+fec_all_clean_miss <- fec_all_clean_miss %>%
   rename(h_nana = `h..nana`,
          s_mansoni = `s..mansoni`)
+# Create project_name variable
+fec_all_clean_miss <- fec_all_clean_miss %>%
+  mutate(project_name = str_split_i(ID, "_", i = 1))
+
+# Drop those still missing age and sex
+fec_all_wide_clean <- fec_all_clean_miss %>%
+  filter(!(is.na(age_cat) | is.na(sex)))
+# Number of individuals: 4443
+length(unique(fec_all_wide_clean$ID))
 
 # Summary of values for each parasite
 summary(fec_all_wide_clean %>% 
           select(ascaris, trich, hook, strongyloides, h_nana, s_mansoni, 
                  helms, e_coli, fungus, insect, pollen))
-
-# Read in cleaned averaged parasite data including missing age and sex
-fec_all_clean_miss <- read.csv(
-  paste0(wd, data_dir, "mah_dar_crs_fec_cleaned_avg.csv"))
 
 #============== (2) Subset to first observed timepoint =========================
 
@@ -126,25 +131,18 @@ nrow(fec_all_wide %>% select(project_name, region, village, household) %>%
        distinct())
 
 
-
-# # Save cross-sectional intestinal parasite data subsetted to first available
-# # timepoint for each individual
-# write.csv(fec_all_wide, 
-#           file = paste0(wd, data_dir, "fec_all_cross_sec.csv"), 
-#           row.names = FALSE)
-
-
-
 # Apply the same subsetting to first available timepoint for those with missing 
 # age and sex
 fec_all_wide_miss <- fec_all_clean_miss %>%
+  pivot_longer(cols = ascaris:s_mansoni, names_to = "parasite", values_to = "value")
+fec_all_wide_miss <- fec_all_wide_miss %>%
   arrange(project_name, region, village, household, individual, parasite, time_point) %>%
   group_by(project_name, region, village, household, individual, parasite, ) %>%
   mutate(first_tp = first(na.omit(time_point))) %>%
   filter(time_point == first_tp) %>% ungroup() %>%
   pivot_wider(names_from = parasite, values_from = value)  %>%
-  rename(h_nana = `h. nana`,
-         s_mansoni = `s. mansoni`)
+  rename(h_nana = `h_nana`,
+         s_mansoni = `s_mansoni`)
 # Number of individuals: 3902
 nrow(fec_all_wide_miss)
 # Individuals by dataset
@@ -157,8 +155,6 @@ nrow(fec_all_wide_miss %>% select(project_name, region, village, household) %>%
 
 
 #======== (3) Exploratory histograms and descriptive tables ====================
-
-
 
 fec_all %>% 
   ggplot(aes(x = parasite, y = value, fill = parasite, col = parasite)) + 
@@ -422,6 +418,7 @@ table1_miss <- miss_df %>%
   add_overall(last = TRUE) %>%
   modify_header(label ~ "**Variable**")
 table1_miss
+
 
 #========= (4) Prevalence of binary parasite presence ==========================
 
@@ -855,6 +852,7 @@ prev_df %>%
 # ggsave(filename = paste0(wd, res_dir, "Figures/prev_overall_ci.png"),
 #        width = 5, height = 4.5, units = "in")
 
+
 # ### Create halfeye plot of prevalence distributions
 # # Get posterior samples of prevalences for all parasites
 # all_samps <- as.data.frame(
@@ -909,237 +907,4 @@ prev_df %>%
 # get_prev(ascaris_bin_main) # n=2266
 # get_prev(ascaris_bin_marg) # n=3708
 # summary(fec_key_bin$ascaris_bin)
-
-#============== [OLD] Prevalence models with individual random intercepts ======
-
-# # Re-define data to include all timepoints
-# 
-# # Focus on key parasites (drop insects, fungus, pollen)
-# fec_key_all <- fec_all_wide_clean %>%
-#   select(-c(fungus, insect, pollen))
-# 
-# # Create binary variables
-# fec_key_bin <- fec_key_clean %>%
-#   rename(h_nana = h_nana, 
-#          s_mansoni = s_mansoni) %>%
-#   mutate(across(ascaris:`s_mansoni`, ~ as.integer(. > 0), 
-#                 .names = "{.col}_bin"))
-# 
-# # Set default for sex and age categories
-# fec_key_bin <- fec_key_bin %>%
-#   # Reference category is set to largest categories: females, age [20,50) 
-#   mutate(sex = factor(sex, levels = c(1, 0), labels = c("F", "M")),
-#          age_cat = factor(age_cat, levels = c("[20,50)", "[0,2)", "[2,5)",  
-#                                               "[5,12)", "[12,20)", "[50,Inf)")))
-# 
-# 
-# ## (1) Ascaris
-# set.seed(1)
-# # model with just main effects
-# ascaris_bin_main <- brm(ascaris_bin ~ sex + age_cat + 
-#                           (1|region/village/household/individual), 
-#                         data = fec_key_bin, 
-#                         family = bernoulli(), 
-#                         # control = list(adapt_delta = 0.99), 
-#                         iter = 4000, warmup = 1000, thin = 3,
-#                         chains = 4, cores = num_cores)
-# set.seed(1)
-# # model with no covariates
-# ascaris_bin_marg <- brm(ascaris_bin ~ (1 | region/village/household/individual), 
-#                         data = fec_key_bin, 
-#                         family = bernoulli(), 
-#                         # control = list(adapt_delta = 0.99), 
-#                         iter = 4000, warmup = 1000, thin = 3,
-#                         chains = 4, cores = num_cores)
-# # # Test with no covariates or clustering
-# # ascaris_bin_test <- brm(ascaris_bin ~ 1, 
-# #                         data = fec_key_bin, 
-# #                         family = bernoulli(), 
-# #                         control = list(adapt_delta = 0.99), 
-# #                         iter=3000, warmup = 800, thin = 3,
-# #                         chains = 4, cores = num_cores)
-# # get_prev(ascaris_bin_test)
-# # # Check crude prevalence
-# # mean(fec_key_bin$ascaris_bin, na.rm = TRUE)
-# # sd(fec_key_bin$ascaris_bin, na.rm = TRUE)
-# 
-# 
-# ## (2) Hookworm
-# set.seed(2)
-# # model with just main effects
-# hook_bin_main <- brm(hook_bin ~ sex + age_cat + 
-#                        (1|region/village/household/individual), 
-#                      data = fec_key_bin, 
-#                      family = bernoulli(), 
-#                      # control = list(adapt_delta = 0.99), 
-#                      iter = 4000, warmup = 1000, thin = 3,
-#                      chains = 4, cores = num_cores)
-# 
-# # model with no covariates
-# hook_bin_marg <- brm(hook_bin ~ (1 | region/village/household/individual), 
-#                      data = fec_key_bin, 
-#                      family = bernoulli(), 
-#                      # control = list(adapt_delta = 0.99), 
-#                      iter = 4000, warmup = 1000, thin = 3,
-#                      chains = 4, cores = num_cores)
-# 
-# 
-# ## (3) Trichuris
-# set.seed(3)
-# # model with just main effects
-# trich_bin_main <- brm(trich_bin ~ sex + age_cat + 
-#                         (1|region/village/household/individual), 
-#                       data = fec_key_bin, 
-#                       family = bernoulli(), 
-#                       # control = list(adapt_delta = 0.99), 
-#                       iter = 4000, warmup = 1000, thin = 3,
-#                       chains = 4, cores = num_cores)
-# 
-# # model with no covariates
-# trich_bin_marg <- brm(trich_bin ~ (1 | region/village/household/individual), 
-#                       data = fec_key_bin, 
-#                       family = bernoulli(), 
-#                       # control = list(adapt_delta = 0.99), 
-#                       iter = 4000, warmup = 2000, thin = 3,
-#                       chains = 4, cores = num_cores)
-# 
-# 
-# ## (4) Strongyloides
-# set.seed(4)
-# # model with just main effects
-# strongyloides_bin_main <- brm(strongyloides_bin ~ sex + age_cat + 
-#                        (1|region/village/household/individual), 
-#                      data = fec_key_bin, 
-#                      family = bernoulli(), 
-#                      # control = list(adapt_delta = 0.99), 
-#                      iter = 4000, warmup = 1000, thin = 3,
-#                      chains = 4, cores = num_cores)
-# 
-# # model with no covariates
-# strongyloides_bin_marg <- brm(strongyloides_bin ~ 
-#                                 (1 | region/village/household/individual), 
-#                      data = fec_key_bin, 
-#                      family = bernoulli(), 
-#                      # control = list(adapt_delta = 0.99), 
-#                      iter = 4000, warmup = 1000, thin = 3,
-#                      chains = 4, cores = num_cores)
-# 
-# 
-# ## (5) H.nana
-# set.seed(5)
-# # model with just main effects
-# h_nana_bin_main <- brm(h_nana_bin ~ sex + age_cat + 
-#                        (1|region/village/household/individual), 
-#                      data = fec_key_bin, 
-#                      family = bernoulli(), 
-#                      # control = list(adapt_delta = 0.99), 
-#                      iter = 4000, warmup = 1000, thin = 3,
-#                      chains = 4, cores = num_cores)
-# 
-# # model with no covariates
-# h_nana_bin_marg <- brm(h_nana_bin ~ (1 | region/village/household/individual), 
-#                      data = fec_key_bin, 
-#                      family = bernoulli(), 
-#                      # control = list(adapt_delta = 0.99), 
-#                      iter = 4000, warmup = 1000, thin = 3,
-#                      chains = 4, cores = num_cores)
-# 
-# 
-# ## (6) S.mansoni
-# set.seed(6)
-# # model with just main effects
-# s_mansoni_bin_main <- brm(s_mansoni_bin ~ sex + age_cat + 
-#                         (1|region/village/household/individual), 
-#                       data = fec_key_bin, 
-#                       family = bernoulli(), 
-#                       # control = list(adapt_delta = 0.99), 
-#                       iter = 4000, warmup = 1000, thin = 3,
-#                       chains = 4, cores = num_cores)
-# 
-# # model with no covariates
-# s_mansoni_bin_marg <- brm(s_mansoni_bin ~ (1 | region/village/household/individual), 
-#                       data = fec_key_bin, 
-#                       family = bernoulli(), 
-#                       # control = list(adapt_delta = 0.99), 
-#                       iter = 4000, warmup = 1000, thin = 3,
-#                       chains = 4, cores = num_cores)
-# 
-# 
-# ## (7) Helminths
-# set.seed(7)
-# # model with just main effects
-# helms_bin_main <- brm(helms_bin ~ sex + age_cat + 
-#                        (1|region/village/household/individual), 
-#                      data = fec_key_bin, 
-#                      family = bernoulli(), 
-#                      # control = list(adapt_delta = 0.99), 
-#                      iter = 4000, warmup = 1000, thin = 3,
-#                      chains = 4, cores = num_cores)
-# 
-# # model with no covariates
-# helms_bin_marg <- brm(helms_bin ~ (1 | region/village/household/individual), 
-#                      data = fec_key_bin, 
-#                      family = bernoulli(), 
-#                      # control = list(adapt_delta = 0.99), 
-#                      iter = 4000, warmup = 1000, thin = 3,
-#                      chains = 4, cores = num_cores)
-# 
-# 
-# ## (8) E-coli
-# set.seed(8)
-# # model with just main effects
-# e_coli_bin_main <- brm(e_coli_bin ~ sex + age_cat + 
-#                        (1|region/village/household/individual), 
-#                      data = fec_key_bin, 
-#                      family = bernoulli(), 
-#                      # control = list(adapt_delta = 0.99), 
-#                      iter = 4000, warmup = 1000, thin = 3,
-#                      chains = 4, cores = num_cores)
-# 
-# # model with no covariates
-# e_coli_bin_marg <- brm(e_coli_bin ~ (1 | region/village/household/individual), 
-#                      data = fec_key_bin, 
-#                      family = bernoulli(), 
-#                      # control = list(adapt_delta = 0.99), 
-#                      iter = 4000, warmup = 1000, thin = 3,
-#                      chains = 4, cores = num_cores)
-# 
-# 
-# # Examine prevalences
-# get_prev(ascaris_bin_main)
-# get_prev(ascaris_bin_marg) # check
-# summary(fec_key_bin$ascaris_bin)
-# get_prev(trich_bin_main) # check
-# get_prev(trich_bin_marg) # check
-# summary(fec_key_bin$trich_bin)
-# get_prev(hook_bin_main)
-# get_prev(hook_bin_marg) 
-# summary(fec_key_bin$hook_bin)
-# get_prev(strongyloides_bin_main)
-# get_prev(strongyloides_bin_marg)
-# summary(fec_key_bin$strongyloides_bin)
-# get_prev(h_nana_bin_main)
-# get_prev(h_nana_bin_marg) # check
-# summary(fec_key_bin$h_nana_bin)
-# get_prev(s_mansoni_bin_main)
-# get_prev(s_mansoni_bin_marg) # check
-# summary(fec_key_bin$s_mansoni_bin)
-# get_prev(helms_bin_main) # check
-# get_prev(helms_bin_marg) # check
-# summary(fec_key_bin$helms_bin)
-# get_prev(e_coli_bin_main) # check
-# get_prev(e_coli_bin_marg) # check
-# summary(fec_key_bin$e_coli_bin)
-
-
-# # Save all models
-# save(ascaris_bin_main, ascaris_bin_marg,
-#      trich_bin_main, trich_bin_marg,
-#      hook_bin_main, hook_bin_marg,
-#      strongyloides_bin_main, strongyloides_bin_marg,
-#      h_nana_bin_main, h_nana_bin_marg,
-#      s_mansoni_bin_main, s_mansoni_bin_marg,
-#      helms_bin_main, helms_bin_marg,
-#      e_coli_bin_main, e_coli_bin_marg,
-#      file = paste0(wd, res_dir, "all_fec_bin_models.Rdata"))
 
