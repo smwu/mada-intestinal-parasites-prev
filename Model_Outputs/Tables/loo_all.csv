@@ -1,0 +1,17 @@
+"Parasite","Interaction","elpd_diff","se_diff"
+"A. lumbricoides","No",0,0
+"A. lumbricoides","Yes",-1.184,2.734
+"T. trichiura","No",0,0
+"T. trichiura","Yes",-2.977,2.845
+"Hookworm","No",0,0
+"Hookworm","Yes",-4.536,2.004
+"Strongyloides","No",0,0
+"Strongyloides","Yes",-2.179,2.219
+"H. nana","Yes",0,0
+"H. nana","No",-0.395,4.128
+"S. mansoni","No",0,0
+"S. mansoni","Yes",-3.405,3.188
+"Helminths","No",0,0
+"Helminths","Yes",-4.545,1.957
+"E. coli","No",0,0
+"E. coli","Yes",-2.748,3.925

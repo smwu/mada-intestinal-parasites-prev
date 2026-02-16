@@ -2,7 +2,7 @@
 # Intestinal Parasites Region-Specific Prevalence Estimates
 # Author: SM Wu
 # Date created: 2025/02/05
-# Date updated: 2025/11/24
+# Date updated: 2026/12/16
 # Purpose: Create region-specific parasite prevalence estimates and plots
 # STEPS: 
 # (1) Read in data
@@ -256,22 +256,110 @@ prev_reg_all_map %>%
   geom_tile(color = "white",
             lwd = 1.5,
             linetype = 1) +
-  scale_fill_gradient(low = "#fef0d9", high = "#B12001", na.value = "white") +
+  scale_fill_gradient(low = "#fef0d9", high = "#d7301f", na.value = "white") +
   geom_text(aes(label = round(Prevalence * 100, 1)), 
-                color = "black", size = 4) +
+            color = "black", size = 4) +
   theme_bw() +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         axis.title.x = element_blank(),
         legend.position = "bottom",
-        legend.direction = "horizontal") + 
+        legend.direction = "horizontal",
+        strip.background = element_rect(fill = "white"),
+        strip.text = element_text(face = "bold", size = 11)) + 
   guides(fill = guide_colourbar(title = "Prevalence (%)",
-                                barwidth = 3.4,
+                                barwidth = 6,
                                 barheight = 1.2)) +
   labs(y = "Region")
+
 # # Save plot
 # ggsave(filename = paste0(wd, res_dir, "Figures/region_heatmap_facetted.png"),
-#        width = 8, height = 4.5, units = "in")
+#        width = 11, height = 5, units = "in")
+
+
+# Updated version so regions are from north to south and parasites are ordered 
+# from highest to lowest prevalence
+region_order <- c("NE", "CP", "SE", "WC", "SW")
+parasite_order <- c("T.trichiura", "A.lumbricoides", "Helminths", "E.coli",
+                    "H.nana", "Hookworm", "S.mansoni", "Strongyloides")
+
+prev_reg_all_map %>%
+  mutate(
+    Region   = factor(Region, levels = region_order),
+    Parasite = factor(Parasite, levels = parasite_order),
+    prev_pct = Prevalence * 100
+  ) %>%
+  ggplot(aes(x = Parasite, y = fct_rev(Region), fill = prev_pct)) +
+  facet_grid(~ Parasite, scales = "free_x") +
+  geom_tile(color = "white", lwd = 1.5, linetype = 1) +
+  scale_fill_gradientn(
+    colours = c("#FFFEF5", "#FFF6D5", "#FEECC2", "#FED7A2", "#FDBB84", "#FC8D59", "#D7301F", "#8F477D", "#612DA4"),
+    values  = scales::rescale(c(0, 0.2, 0.5, 1, 5, 20, 35, 55, 65)),
+    limits  = c(0, 65),
+    oob     = scales::squish,
+    na.value = "white"
+  ) + 
+  geom_text(aes(label = round(prev_pct, 1)), color = "black", size = 4) +
+  theme_bw() +
+  theme(
+    panel.spacing.x = unit(0.2, "lines"),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_blank(),
+    legend.position = "bottom",
+    legend.direction = "horizontal",
+    strip.background = element_rect(fill = "white"),
+    strip.text = element_text(face = "bold")
+  ) +
+  guides(fill = guide_colourbar(
+    title = "Prevalence (%)",
+    barwidth = 15,
+    barheight = 1.2
+  )) +
+  labs(y = "Region")
+# ggsave(filename = paste0(wd, res_dir, "Figures/region_heatmap_facetted_new.png"),
+#        width = 8.2, height = 4.8, units = "in")
+
+# Remove helminths and e.coli from plot
+prev_reg_all_map %>%
+  filter(Parasite != "Helminths" & Parasite != "E.coli") %>%
+  mutate(
+    Region   = factor(Region, levels = region_order),
+    Parasite = factor(Parasite, levels = parasite_order),
+    prev_pct = Prevalence * 100
+  ) %>%
+  ggplot(aes(x = Parasite, y = fct_rev(Region), fill = prev_pct)) +
+  facet_grid(~ Parasite, scales = "free_x") +
+  geom_tile(color = "white", lwd = 1.5, linetype = 1) +
+  scale_fill_gradientn(
+    colours = c("#FFFEF5", "#FFF6D5", "#FEECC2", "#FED7A2", "#FDBB84", "#FC8D59", "#D7301F", "#8F477D", "#612DA4"),
+    values  = scales::rescale(c(0, 0.2, 0.5, 1, 5, 20, 35, 55, 65)),
+    limits  = c(0, 65),
+    oob     = scales::squish,
+    na.value = "white"
+  ) + 
+  geom_text(aes(label = round(prev_pct, 1)), color = "black", size = 4) +
+  theme_bw() +
+  theme(
+    panel.spacing.x = unit(0.5, "lines"),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_blank(),
+    legend.position = "bottom",
+    legend.direction = "horizontal",
+    strip.background = element_rect(fill = "white"),
+    strip.text = element_text(face = "bold")
+  ) +
+  guides(fill = guide_colourbar(
+    title = "Prevalence (%)",
+    barwidth = 15,
+    barheight = 1.2
+  )) +
+  labs(y = "Region")
+# # Save final facetted heatmap without e.coli and helminths
+# ggsave(filename = paste0(wd, res_dir, "Figures/region_heatmap_facetted_final.png"),
+#        width = 7, height = 4.8, units = "in")
+
 
 
 ### Creating heatmap of region-specific prevalences for all parasites, each with 
@@ -362,14 +450,15 @@ p.map
 
 ### Create plot of region prevalences and their CIs for all parasites
 prev_reg_all_map %>%
-  ggplot(aes(x = Prevalence, y = fct_rev(Region), xmin = lower, xmax = upper)) + 
+  ggplot(aes(x = Prevalence*100, y = fct_rev(Region), 
+             xmin = lower*100, xmax = upper*100)) + 
   geom_errorbar(col = "darkgrey") + 
   geom_point(fill = "lightblue2", pch = 21, size = 2) + 
   theme_bw() +
   facet_wrap(~ Parasite, nrow = 2, ncol = 4, scales = "fixed") + 
   theme(panel.spacing = unit(0.3, "cm")) + 
   theme(strip.background = element_rect(fill = "lightblue2")) +
-  ylab("Region") + xlab("Prevalence") + xlim(c(0, 1))
+  ylab("Region") + xlab("Prevalence (%)") + xlim(c(0, 100))
 # # Save plot
 # ggsave(filename = paste0(wd, res_dir, "Figures/prev_region_ci.png"),
 #        width = 9, height = 6, units = "in")

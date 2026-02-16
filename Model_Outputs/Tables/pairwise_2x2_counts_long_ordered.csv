@@ -1,0 +1,25 @@
+"parasite_i","parasite_j","count_both_absent","count_i_absent_j_present","count_i_present_j_absent","count_both_present","n_complete_cases"
+"A. lumbricoides","T. trichiura",2288,296,654,634,3872
+"A. lumbricoides","Hookworm",2509,75,1150,138,3872
+"A. lumbricoides","Strongyloides",2566,18,1270,18,3872
+"A. lumbricoides","H. nana",2167,119,963,26,3275
+"A. lumbricoides","S. mansoni",2247,39,960,29,3275
+"A. lumbricoides","Helminths",252,46,0,299,597
+"A. lumbricoides","E. coli",274,24,288,11,597
+"T. trichiura","Hookworm",2842,100,817,113,3872
+"T. trichiura","Strongyloides",2921,21,915,15,3872
+"T. trichiura","H. nana",2323,122,807,23,3275
+"T. trichiura","S. mansoni",2407,38,800,30,3275
+"T. trichiura","Helminths",252,245,0,100,597
+"T. trichiura","E. coli",469,28,93,7,597
+"Hookworm","Strongyloides",3628,31,208,5,3872
+"Hookworm","H. nana",2997,138,133,7,3275
+"Hookworm","S. mansoni",3070,65,137,3,3275
+"Hookworm","Helminths",252,272,0,73,597
+"Hookworm","E. coli",494,30,68,5,597
+"Strongyloides","H. nana",3102,142,28,3,3275
+"Strongyloides","S. mansoni",3183,61,24,7,3275
+"Strongyloides","Helminths",250,342,2,3,597
+"Strongyloides","E. coli",557,35,5,0,597
+"H. nana","S. mansoni",3069,61,138,7,3275
+"Helminths","E. coli",234,18,328,17,597

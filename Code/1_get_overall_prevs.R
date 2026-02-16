@@ -2,7 +2,7 @@
 # Intestinal Parasites EDA and Prevalence Estimates
 # Author: SM Wu
 # Date created: 2025/01/28
-# Date updated: 2025/11/24
+# Date updated: 2026/02/16
 # Purpose: Create exploratory figures and parasite prevalence estimates 
 # STEPS: 
 # (1) Read in data 
@@ -741,17 +741,6 @@ get_prev(e_coli_bin_int) # n=597
 get_prev(e_coli_bin_marg) # n=97
 summary(fec_key_bin$e_coli_bin)
 
-# Compare models with leave-one-out cross validation
-loo_compare(loo(ascaris_bin_int), loo(ascaris_bin_main)) # main better
-loo_compare(loo(trich_bin_int), loo(trich_bin_main)) # main better
-loo_compare(loo(hook_bin_int), loo(hook_bin_main)) # main better
-loo_compare(loo(strongyloides_bin_int), loo(strongyloides_bin_main)) # main better
-loo_compare(loo(h_nana_bin_int), loo(h_nana_bin_main)) # interaction better
-loo_compare(loo(s_mansoni_bin_int), loo(s_mansoni_bin_main)) # main better
-loo_compare(loo(helms_bin_int), loo(helms_bin_main)) # main better
-loo_compare(loo(e_coli_bin_int), loo(e_coli_bin_main)) # main better
-
-
 
 # # Save all models using data from the first available timepoint
 save(ascaris_bin_main, ascaris_bin_marg, ascaris_bin_int,
@@ -766,6 +755,71 @@ save(ascaris_bin_main, ascaris_bin_marg, ascaris_bin_int,
 
 # # Load models
 # load(paste0(wd, res_dir, "all_fec_bin_models_tp1.Rdata"))
+
+
+# Compare models with leave-one-out cross validation
+loo_asc <- loo_compare(loo(ascaris_bin_int), loo(ascaris_bin_main)) # main better
+loo_tri <- loo_compare(loo(trich_bin_int), loo(trich_bin_main)) # main better
+loo_hook <- loo_compare(loo(hook_bin_int), loo(hook_bin_main)) # main better
+loo_str <- loo_compare(loo(strongyloides_bin_int), loo(strongyloides_bin_main)) # main better
+loo_hnana <- loo_compare(loo(h_nana_bin_int), loo(h_nana_bin_main)) # interaction better
+loo_sman <- loo_compare(loo(s_mansoni_bin_int), loo(s_mansoni_bin_main)) # main better
+loo_helms <- loo_compare(loo(helms_bin_int), loo(helms_bin_main)) # main better
+loo_ecoli <- loo_compare(loo(e_coli_bin_int), loo(e_coli_bin_main)) # main better
+# Create loo output
+loo_df <- rbind(loo_asc, loo_tri, loo_hook, loo_str, loo_hnana, loo_sman,
+                loo_helms, loo_ecoli)
+loo_df <- as.data.frame(loo_df[, c(1,2)])
+loo_df$Parasite <- rep(c("A. lumbricoides", "T. trichiura", "Hookworm", "Strongyloides", 
+                         "H. nana", "S. mansoni", "Helminths", "E. coli"), 
+                       each = 2)
+loo_df$Interaction <- ifelse(grepl("int", rownames(loo_df)), "Yes", "No")
+loo_df <- loo_df %>% select(Parasite, Interaction, elpd_diff, se_diff)
+loo_df$elpd_diff <- round(loo_df$elpd_diff, digits = 3)
+loo_df$se_diff <- round(loo_df$se_diff, digits = 3)
+kable(loo_df, format = "simple", booktabs = TRUE)
+
+# # Save dataframe of loo
+# write.csv(loo_df, file = paste0(wd, res_dir, "Tables/loo_all.csv"),
+#           row.names = FALSE)
+
+
+# loo with all three models
+loo_asc3 <- loo_compare(loo(ascaris_bin_int), loo(ascaris_bin_main), 
+                        loo(ascaris_bin_marg)) # main better
+loo_tri3 <- loo_compare(loo(trich_bin_int), loo(trich_bin_main),
+                        loo(trich_bin_marg)) # main better
+loo_hook3 <- loo_compare(loo(hook_bin_int), loo(hook_bin_main),
+                         loo(hook_bin_marg)) # main better
+loo_str3 <- loo_compare(loo(strongyloides_bin_int), loo(strongyloides_bin_main),
+                        loo(strongyloides_bin_marg)) # main better
+loo_hnana3 <- loo_compare(loo(h_nana_bin_int), loo(h_nana_bin_main),
+                          loo(h_nana_bin_marg)) # interaction better
+loo_sman3 <- loo_compare(loo(s_mansoni_bin_int), loo(s_mansoni_bin_main),
+                         loo(s_mansoni_bin_marg)) # main better
+loo_helms3 <- loo_compare(loo(helms_bin_int), loo(helms_bin_main),
+                          loo(helms_bin_marg)) # main better
+loo_ecoli3 <- loo_compare(loo(e_coli_bin_int), loo(e_coli_bin_main),
+                          loo(e_coli_bin_marg)) # main better
+# Create loo output
+loo_df3 <- rbind(loo_asc3, loo_tri3, loo_hook3, loo_str3, loo_hnana3, loo_sman3,
+                 loo_helms3, loo_ecoli3)
+loo_df3 <- as.data.frame(loo_df3[, c(1,2)])
+loo_df3$Parasite <- rep(c("A. lumbricoides", "T. trichiura", "Hookworm", "Strongyloides", 
+                          "H. nana", "S. mansoni", "Helminths", "E. coli"), 
+                        each = 3)
+loo_df3$Model <- ifelse(grepl("int", rownames(loo_df3)), "Age-Sex Int", 
+                        ifelse(grepl("main", rownames(loo_df3)), "Age-Sex", 
+                               "Overall"))
+loo_df3 <- loo_df3 %>% select(Parasite, Model, elpd_diff, se_diff)
+loo_df3$elpd_diff <- round(loo_df3$elpd_diff, digits = 3)
+loo_df3$se_diff <- round(loo_df3$se_diff, digits = 3)
+kable(loo_df3, format = "simple", booktabs = TRUE)
+
+# # Save dataframe of loo
+# write.csv(loo_df3, file = paste0(wd, res_dir, "Tables/loo_all3.csv"),
+#           row.names = FALSE)
+
 
 # Model diagnostics for interaction models
 g1 <- pp_check(ascaris_bin_int)
@@ -835,11 +889,16 @@ gridExtra::grid.table(prev_df)
 #           row.names = FALSE)
 
 
-### Create plot of region prevalences and their CIs for all parasites
+### Create plot of overall prevalences and their CIs for all parasites
 prev_df %>%
   rename(Prevalence = Mean,
          lower = `2.5%`,
          upper = `97.5%`) %>%
+  mutate(Parasite = factor(Parasite, 
+                           levels = c("A. lumbricoides", "T. trichiura", 
+                                      "Hookworm", "Strongyloides", "H. nana", 
+                                      "S. mansoni", "Helminths", "E. coli")),
+         Parasite = fct_rev(Parasite)) %>%
   ggplot(aes(x = Prevalence, y = Parasite, xmin = lower, xmax = upper)) + 
   geom_errorbar(col = "darkgrey") + 
   geom_point(aes(x = Prevalence, shape = "Mean"), size = 2, fill = "cyan3") + 

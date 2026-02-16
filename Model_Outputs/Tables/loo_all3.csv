@@ -1,0 +1,25 @@
+"Parasite","Model","elpd_diff","se_diff"
+"A. lumbricoides","Age-Sex",0,0
+"A. lumbricoides","Age-Sex Int",-1.184,2.734
+"A. lumbricoides","Overall",-12.04,6.181
+"T. trichiura","Age-Sex",0,0
+"T. trichiura","Age-Sex Int",-2.977,2.845
+"T. trichiura","Overall",-30.24,8.891
+"Hookworm","Age-Sex",0,0
+"Hookworm","Overall",-2.854,4.208
+"Hookworm","Age-Sex Int",-4.536,2.004
+"Strongyloides","Overall",0,0
+"Strongyloides","Age-Sex",-3.807,3.82
+"Strongyloides","Age-Sex Int",-5.985,4.118
+"H. nana","Age-Sex Int",0,0
+"H. nana","Age-Sex",-0.395,4.128
+"H. nana","Overall",-5.634,6.495
+"S. mansoni","Overall",0,0
+"S. mansoni","Age-Sex",-2.98,4.311
+"S. mansoni","Age-Sex Int",-6.385,4.726
+"Helminths","Overall",0,0
+"Helminths","Age-Sex",-4.769,1.915
+"Helminths","Age-Sex Int",-9.315,2.787
+"E. coli","Overall",0,0
+"E. coli","Age-Sex",-5.393,2.118
+"E. coli","Age-Sex Int",-8.141,4.68
