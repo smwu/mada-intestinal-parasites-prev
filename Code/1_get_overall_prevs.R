@@ -13,10 +13,8 @@
 # 
 # Inputs:
 #   Datasets:
-#       "Cleaned_Data/mah_dar_crs_fec_cleaned_avg_wide_drop_miss.csv": Cleaned 
-#       parasite data in wide format, excluding those missing age or sex
-#       "Cleaned_Data/mah_dar_crs_fec_cleaned_avg.csv" Cleaned fecal sample 
-#       averaged data w/ age and sex for MAH, DAR, and CRS, in long format and 
+#       "Cleaned_Data/mah_dar_crs_fec_cleaned_avg_wide_public.csv" Cleaned fecal sample 
+#       averaged data w/ age and sex for MAH, DAR, and CRS, in wide format and 
 #       with missingness
 #  
 # Outputs (number in parentheses indicates step in which it was generated):
@@ -337,9 +335,9 @@ table1 <- df %>%
 export_table <- table1 %>%
   as_flex_table() %>%
   flextable::width(width = 1)
-flextable::save_as_docx(
-  export_table, 
-  path = paste0(wd, res_dir, "Tables/Table1.docx"), width = 1)
+# flextable::save_as_docx(
+#   export_table, 
+#   path = paste0(wd, res_dir, "Tables/Table1.docx"), width = 1)
 
 
 
