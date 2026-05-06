@@ -233,27 +233,38 @@ parasites <- c("A.lumbricoides", "T.trichiura", "Hookworm",
 ### Creating heatmap of region-specific prevalences for all parasites within a 
 ### single facetted plot
 prev_age_sex_all_map %>% 
+  mutate(Sex = factor(Sex, levels = c("M", "F"), labels = c("Males", "Females"))) %>%
   ggplot(aes(x = Parasite, y = fct_rev(Age), fill = (Prevalence * 100))) + 
   facet_grid(Sex ~ Parasite, scales = "free") + 
   geom_tile(color = "white",
             lwd = 1.5,
             linetype = 1) +
-  scale_fill_gradient(low = "#fef0d9", high = "#d7301f", na.value = "white") +
+  scale_fill_gradientn(
+    colours = c("#FFFEF5", "#FFF6D5", "#FEECC2", "#FED7A2", "#FDBB84", "#FC8D59", "#D7301F", "#8F477D", "#612DA4"),
+    values  = scales::rescale(c(0, 0.2, 0.5, 1, 5, 20, 35, 55, 65)),
+    limits  = c(0, 65),
+    oob     = scales::squish,
+    na.value = "white"
+  ) + 
   geom_text(aes(label = round(Prevalence * 100, 1)), 
             color = "black", size = 4) +
   theme_bw() +
-  theme(strip.background = element_rect(fill = "snow2")) +
-  theme(panel.spacing = unit(0.3, "cm")) + 
-  theme(axis.text.x = element_blank(),
+  theme(panel.spacing = unit(0.4, "cm"),
+        axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 12),
+        axis.text.y = element_text(size = 11),
         legend.position = "bottom",
-        legend.direction = "horizontal") + 
+        legend.direction = "horizontal",
+        legend.key.width = unit(2, "cm"),
+        strip.background = element_rect(fill = "snow2"),
+        strip.text = element_text(face = "bold", size = 11)) + 
   guides(fill = guide_colourbar(title = "Prevalence (%)")) +
   labs(y = "Age")
 # # Save plot
 # ggsave(filename = paste0(wd, res_dir, "Figures/age_sex_heatmap_facetted.png"),
-#        width = 8.5, height = 7.5, units = "in")
+#        width = 11.5, height = 7.5, units = "in")
 
 
 ### Creating heatmap of age-sex-specific prevalences for all parasites, each with 
