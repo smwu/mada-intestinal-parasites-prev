@@ -43,6 +43,7 @@ library(gtsummary)        # create descriptive table
 library(ggpubr)           # displaying multiple plots
 library(naniar)           # check missingness
 library(loo)              # comparing models
+library(bayesplot)        # set color scheme
 
 
 ## use all cores for speed
@@ -448,7 +449,7 @@ get_prev <- function(model, digits = 3) {
   prev <- plogis(posterior_samps$b_Intercept)
   # Summary of prevalence
   prev_summary <- c(mean = mean(prev), sd = sd(prev), 
-                    quantile(prev, probs = c(0.025, 0.6, 0.975)))
+                    quantile(prev, probs = c(0.025, 0.5, 0.975)))
   prev_summary <- format(round(prev_summary, digits), digits = digits,
                          nsmall = digits)
   # Convert prevalences to numeric
@@ -819,19 +820,47 @@ kable(loo_df3, format = "simple", booktabs = TRUE)
 #           row.names = FALSE)
 
 
+# Set color scheme for pp_check
+color_scheme_set(c(
+  "#d1e1ec",
+  "coral3",
+  "#03396c",
+  "#b3cde0",
+  "#005b96",
+  "#011f4b"
+))
+# bayesplot::color_scheme_set("blue")
+
 # Model diagnostics for interaction models
-g1 <- pp_check(ascaris_bin_int)
-g2 <- pp_check(trich_bin_int)
-g3 <- pp_check(hook_bin_int)
-g4 <- pp_check(strongyloides_bin_int)
-g5 <- pp_check(h_nana_bin_int)
-g6 <- pp_check(s_mansoni_bin_int)
-g7 <- pp_check(helms_bin_int)
-g8 <- pp_check(e_coli_bin_int)
+g1 <- pp_check(ascaris_bin_int) + theme_minimal()
+# Add transparency and decrease line width for y_obs
+g1$layers[[2]]$aes_params$alpha <- 0.7
+g1$layers[[2]]$aes_params$linewidth <- 0.4
+g2 <- pp_check(trich_bin_int) + theme_minimal()
+g2$layers[[2]]$aes_params$alpha <- 0.7
+g2$layers[[2]]$aes_params$linewidth <- 0.4
+g3 <- pp_check(hook_bin_int) + theme_minimal()
+g3$layers[[2]]$aes_params$alpha <- 0.7
+g3$layers[[2]]$aes_params$linewidth <- 0.4
+g4 <- pp_check(strongyloides_bin_int) + theme_minimal()
+g4$layers[[2]]$aes_params$alpha <- 0.7
+g4$layers[[2]]$aes_params$linewidth <- 0.4
+g5 <- pp_check(h_nana_bin_int) + theme_minimal()
+g5$layers[[2]]$aes_params$alpha <- 0.7
+g5$layers[[2]]$aes_params$linewidth <- 0.4
+g6 <- pp_check(s_mansoni_bin_int) + theme_minimal()
+g6$layers[[2]]$aes_params$alpha <- 0.7
+g6$layers[[2]]$aes_params$linewidth <- 0.4
+g7 <- pp_check(helms_bin_int) + theme_minimal()
+g7$layers[[2]]$aes_params$alpha <- 0.7
+g7$layers[[2]]$aes_params$linewidth <- 0.4
+g8 <- pp_check(e_coli_bin_int) + theme_minimal()
+g8$layers[[2]]$aes_params$alpha <- 0.7
+g8$layers[[2]]$aes_params$linewidth <- 0.4
 ggarrange(plotlist = list(g1, g2, g3, g4, g5, g6, g7, g8), nrow = 3, ncol = 3, 
           labels = c("A. lumbricoides", "T. trichiura", "Hookworm", 
-                      "Strongyloides", "H. nana", "S. mansoni", 
-                       "Helminths", "E. coli"),
+                     "Strongyloides", "H. nana", "S. mansoni", 
+                     "Helminths", "E. coli"),
           font.label = list(size = 11, color = "black"))
 
 # # Save plot
@@ -840,14 +869,30 @@ ggarrange(plotlist = list(g1, g2, g3, g4, g5, g6, g7, g8), nrow = 3, ncol = 3,
 
 
 # Model diagnostics for marginal models
-g1 <- pp_check(ascaris_bin_marg)
-g2 <- pp_check(trich_bin_marg)
-g3 <- pp_check(hook_bin_marg)
-g4 <- pp_check(strongyloides_bin_marg)
-g5 <- pp_check(h_nana_bin_marg)
-g6 <- pp_check(s_mansoni_bin_marg)
-g7 <- pp_check(helms_bin_marg)
-g8 <- pp_check(e_coli_bin_marg)
+g1 <- pp_check(ascaris_bin_marg) + theme_minimal()
+g1$layers[[2]]$aes_params$alpha <- 0.7
+g1$layers[[2]]$aes_params$linewidth <- 0.4
+g2 <- pp_check(trich_bin_marg) + theme_minimal()
+g2$layers[[2]]$aes_params$alpha <- 0.7
+g2$layers[[2]]$aes_params$linewidth <- 0.4
+g3 <- pp_check(hook_bin_marg) + theme_minimal()
+g3$layers[[2]]$aes_params$alpha <- 0.7
+g3$layers[[2]]$aes_params$linewidth <- 0.4
+g4 <- pp_check(strongyloides_bin_marg) + theme_minimal()
+g4$layers[[2]]$aes_params$alpha <- 0.7
+g4$layers[[2]]$aes_params$linewidth <- 0.4
+g5 <- pp_check(h_nana_bin_marg) + theme_minimal()
+g5$layers[[2]]$aes_params$alpha <- 0.7
+g5$layers[[2]]$aes_params$linewidth <- 0.4
+g6 <- pp_check(s_mansoni_bin_marg) + theme_minimal()
+g6$layers[[2]]$aes_params$alpha <- 0.7
+g6$layers[[2]]$aes_params$linewidth <- 0.4
+g7 <- pp_check(helms_bin_marg) + theme_minimal()
+g7$layers[[2]]$aes_params$alpha <- 0.7
+g7$layers[[2]]$aes_params$linewidth <- 0.4
+g8 <- pp_check(e_coli_bin_marg) + theme_minimal()
+g8$layers[[2]]$aes_params$alpha <- 0.7
+g8$layers[[2]]$aes_params$linewidth <- 0.4
 ggarrange(plotlist = list(g1, g2, g3, g4, g5, g6, g7, g8), nrow = 3, ncol = 3, 
           labels = c("A. lumbricoides", "T. trichiura", "Hookworm", 
                      "Strongyloides", "H. nana", "S. mansoni", 
