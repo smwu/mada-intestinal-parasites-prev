@@ -38,11 +38,15 @@ library(ggthemes)         # for plotting
 library(reshape2)         # for plotting
 library(scales)           # for plotting
 library(patchwork)        # for multiple plots
-library(maps)             # for Madagascar map
 library(cowplot)          # for shared legend
 library(tidybayes)        # for Bayesian modeling helper functions
+library(brms)
 library(writexl)
-
+library(readxl)
+library(maps)             # for Madagascar map
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
 
 ### Specify directories (change to your local paths)
 wd <- "~/Documents/GitHub/mada-intestinal-parasites-prev/"  # Working directory
@@ -283,7 +287,7 @@ region_order <- c("NE", "CP", "SE", "WC", "SW")
 parasite_order <- c("T.trichiura", "A.lumbricoides", "Helminths", "E.coli",
                     "H.nana", "Hookworm", "S.mansoni", "Strongyloides")
 
-prev_reg_all_map %>%
+p_heatmap <- prev_reg_all_map %>%
   mutate(
     Region   = factor(Region, levels = region_order),
     Parasite = factor(Parasite, levels = parasite_order),
@@ -317,11 +321,12 @@ prev_reg_all_map %>%
     barheight = 1.2
   )) +
   labs(y = "Region")
+p_heatmap
 # ggsave(filename = paste0(wd, res_dir, "Figures/region_heatmap_facetted_new.png"),
 #        width = 8.2, height = 4.8, units = "in")
 
 # Remove helminths and e.coli from plot
-prev_reg_all_map %>%
+p_heatmap_removed <- prev_reg_all_map %>%
   filter(Parasite != "Helminths" & Parasite != "E.coli") %>%
   mutate(
     Region   = factor(Region, levels = region_order),
@@ -356,10 +361,112 @@ prev_reg_all_map %>%
     barheight = 1.2
   )) +
   labs(y = "Region")
-# # Save final facetted heatmap without e.coli and helminths
+p_heatmap_removed
 # ggsave(filename = paste0(wd, res_dir, "Figures/region_heatmap_facetted_final.png"),
 #        width = 7, height = 4.8, units = "in")
 
+
+
+### Add in map of site locations
+
+# Read in site midpoint data
+df.sites <- read_excel(
+  paste0(wd, "Data/Site midpoints for ease of reference Ben 20190225c.xlsx"))
+
+# Natural Earth Madagascar boundary
+madagascar <- ne_countries(
+  country = "Madagascar",
+  scale = "medium",
+  returnclass = "sf"
+)
+
+# Convert site coordinates to sf object
+sites_sf <- st_as_sf(
+  df.sites,
+  coords = c("longitude", "latitude"),
+  crs = 4326
+)
+
+# Manually define labeled region boxes
+region_boxes <- data.frame(
+  region = c("NE", "CP", "SE", "WC", "SW"),
+  xmin = c(48.8, 46.2, 47.0, 43.1, 43.3),
+  xmax = c(50.6, 48.0, 48.8, 44.9, 45.1),
+  ymin = c(-16.2, -20.7, -22.5, -22.5, -24.3),
+  ymax = c(-14.5, -19.0, -20.8, -20.8, -22.6)
+)
+
+# Label positions
+region_labels <- data.frame(
+  region = c("NE", "CP", "SE", "WC", "SW"),
+  x = c(48.8 + 0.15, 46.2 + 0.15, 47.0 + 0.15, 44.9 - 1.1, 45.1 - 1.1),
+  y = c(-14.5 - 0.15, -19.0 - 0.15, -22.5 + 0.65, -20.8 - 0.15, -24.3 + 0.65)
+)
+
+# Plot map
+p.map <- ggplot() +
+  geom_sf(
+    data = madagascar,
+    fill = "grey20",
+    color = "white",
+    linewidth = 0.1
+  ) +
+  geom_sf(
+    data = sites_sf,
+    color = "#72d572",
+    alpha = 0.6,
+    size = 2
+  ) +
+  geom_rect(
+    data = region_boxes,
+    aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+    inherit.aes = FALSE,
+    fill = NA,
+    color = "grey80",
+    linewidth = 0.6
+  ) +
+  geom_text(
+    data = region_labels,
+    aes(x = x, y = y, label = region),
+    inherit.aes = FALSE,
+    color = "grey80",
+    fontface = "bold",
+    size = 4,
+    hjust = 0,
+    vjust = 1
+  ) +
+  coord_sf(
+    xlim = c(42.8, 51.2),
+    ylim = c(-26, -12),
+    expand = FALSE
+  ) +
+  theme(
+    legend.position = "none",
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.background = element_rect(fill = "white"),
+    plot.background = element_rect(fill = "white", color = NA)
+  )
+
+p.map
+
+# # Save map
+# ggsave(filename = paste0(wd, res_dir, "Figures/madagascar_map.png"),
+#        width = 2.5, height = 4.5, units = "in")
+
+
+### Combine heatmap with madagascar map into one figure
+
+ggarrange(p.map, p_heatmap_removed, nrow = 1, widths = c(0.25, 0.75))
+
+# # Save combined heatmap and madagascar map
+# ggsave(filename = paste0(wd, res_dir, "Figures/combined_region_heatmap_madagascar_map.png"),
+#        width = 9.5, height = 4.8, units = "in")
 
 
 ### Creating heatmap of region-specific prevalences for all parasites, each with 
@@ -422,30 +529,6 @@ p_all <- gridExtra::grid.arrange(arrangeGrob(p1, p2, p3, p4, p5, p6, p7, p8,
 
 # Need to manually add the legend in Adobe Illustrator!
 
-
-### Create map of site locations
-# Reading in site midpoint data
-df.sites <- readxl::read_excel(
-  paste0(wd, "Data/", "Site midpoints for ease of reference Ben 20190225c.xlsx"))
-
-# Making base map of madagascar
-map.mg <- ggplot2::map_data("world", region = "Madagascar")
-
-# Add site points
-# Label sites using same size and shape (then overlay regional label in powerpoint)
-p.map <- ggplot() + 
-  geom_polygon(data = map.mg, aes(x=long, y = lat, group = group), color = "white", linewidth = 0.1) + 
-  coord_fixed(1) +
-  geom_point(data = df.sites, aes(x = longitude, y = latitude), color = "#72d572", alpha = 0.5, size = 2) +
-  theme(legend.position = "right", legend.title = element_blank(),
-        panel.grid = element_blank(),
-        axis.title.x = element_blank(), axis.text.x = element_blank(),
-        axis.title.y = element_blank(), axis.text.y = element_blank(),
-        panel.background = element_rect(fill = "white"))
-p.map
-# # Save map
-# ggsave(filename = paste0(wd, res_dir, "Figures/madagascar_map.png"),
-#        width = 2.5, height = 4.5, units = "in")
 
 
 ### Create plot of region prevalences and their CIs for all parasites
