@@ -266,6 +266,11 @@ prev_age_sex_all_map %>%
 # ggsave(filename = paste0(wd, res_dir, "Figures/age_sex_heatmap_facetted.png"),
 #        width = 11.5, height = 7.5, units = "in")
 
+# # Export as EPS to convert to TIFF with NAAS tool
+# ggsave(filename = paste0(wd, res_dir, "Figures/Fig3.eps"),
+#        width = 11.5, height = 7.5, units = "in")
+
+
 
 ### Creating heatmap of age-sex-specific prevalences for all parasites, each with 
 ### its own legend and axes

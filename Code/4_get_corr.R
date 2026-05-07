@@ -325,6 +325,9 @@ ggarrange(
 # ggsave(filename = paste0(wd, res_dir, "Figures/cooccur.png"),
 #        width = 13, height = 7, units = "in")
 
+# # Export as EPS to convert to TIFF with NAAS tool
+# ggsave(filename = paste0(wd, res_dir, "Figures/Fig1.eps"),
+#        width = 13, height = 7, units = "in")
 
 # ========== Export 2x2 tables
 

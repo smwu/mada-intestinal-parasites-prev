@@ -371,7 +371,7 @@ p_heatmap_removed
 
 # Read in site midpoint data
 df.sites <- read_excel(
-  paste0(wd, "Data/Site midpoints for ease of reference Ben 20190225c.xlsx"))
+  paste0(wd, data_dir, "Site midpoints for ease of reference Ben 20190225c.xlsx"))
 
 # Natural Earth Madagascar boundary
 madagascar <- ne_countries(
@@ -467,6 +467,11 @@ ggarrange(p.map, p_heatmap_removed, nrow = 1, widths = c(0.25, 0.75))
 # # Save combined heatmap and madagascar map
 # ggsave(filename = paste0(wd, res_dir, "Figures/combined_region_heatmap_madagascar_map.png"),
 #        width = 9.5, height = 4.8, units = "in")
+
+# # Export as EPS to convert to TIFF with NAAS tool
+# ggsave(filename = paste0(wd, res_dir, "Figures/Fig2.eps"),
+#        width = 9.5, height = 4.8, units = "in")
+
 
 
 ### Creating heatmap of region-specific prevalences for all parasites, each with 
